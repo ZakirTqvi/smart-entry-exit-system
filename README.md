@@ -49,10 +49,3 @@ A Smart Entry-Exit Management System built using **MERN Stack and Face Recogniti
 - OpenCV  
 - Face Recognition Libraries  
 
----
-
-## 🚀 Installation
-
-### 1️⃣ Clone Repository
-```bash
-git clone https://github.com/your-username/smart-entry-exit-system.git
