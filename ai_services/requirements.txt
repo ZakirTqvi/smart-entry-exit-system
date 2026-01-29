@@ -1,0 +1,10 @@
+face-recognition
+face-recognition-models
+dlib
+opencv-python
+numpy
+pillow
+flask
+pymongo
+python-dotenv
+requests
