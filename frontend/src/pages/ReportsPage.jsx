@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { BASE_URL } from "../utils/api";
 import StatCard from "../components/StatCard";
+import { Filler } from "chart.js";
 import { Line, Pie, Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -22,7 +23,8 @@ ChartJS.register(
   ArcElement,
   BarElement,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 );
 
 const ReportsPage = () => {
@@ -121,39 +123,107 @@ const ReportsPage = () => {
   }, []);
 
   /* ================== CHART DATA ================== */
-  const lineChartData = {
-    labels: dailyEntries.map((d) => d.date),
-    datasets: [
-      {
-        label: "Daily Entries",
-        data: dailyEntries.map((d) => d.count),
-        borderColor: "#2563eb",
-        backgroundColor: "rgba(37,99,235,0.1)",
-        tension: 0.3
-      }
-    ]
-  };
+ const lineOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: "#111827",
+      titleColor: "#fff",
+      bodyColor: "#fff",
+      padding: 10
+    }
+  },
+  scales: {
+    x: {
+      ticks: { color: "#6b7280", font: { size: 11 } },
+      grid: { display: false }
+    },
+    y: {
+      ticks: { color: "#6b7280", font: { size: 11 } },
+      grid: { color: "#e5e7eb" }
+    }
+  }
+};
 
-  const pieChartData = {
-    labels: roleStats.map((r) => r.role),
-    datasets: [
-      {
-        data: roleStats.map((r) => r.count),
-        backgroundColor: ["#2563eb", "#16a34a", "#dc2626", "#f59e0b"]
-      }
-    ]
-  };
 
-  const barChartData = {
-    labels: dailyEntries.map((d) => d.date),
-    datasets: [
-      {
-        label: "Entries",
-        data: dailyEntries.map((d) => d.count),
-        backgroundColor: "#16a34a"
+const pieOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: {
+      position: "bottom",
+      labels: {
+        boxWidth: 12,
+        padding: 12,
+        font: { size: 12 }
       }
-    ]
-  };
+    }
+  }
+};
+
+
+const barOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { font: { size: 11 } }
+    },
+    y: {
+      beginAtZero: true,
+      ticks: { font: { size: 11 } }
+    }
+  }
+};
+
+const lineChartData = {
+  labels: dailyEntries.map(d => d.date),
+  datasets: [
+    {
+      label: "Daily Entries",
+      data: dailyEntries.map(d => d.count),
+      borderColor: "#2563eb",
+      backgroundColor: "rgba(37,99,235,0.15)",
+      tension: 0.4,
+      fill: true
+    }
+  ]
+};
+
+const pieChartData = {
+  labels: roleStats.map(r => r.role),
+  datasets: [
+    {
+      data: roleStats.map(r => r.count),
+      backgroundColor: [
+        "#2563eb", // blue
+        "#16a34a", // green
+        "#f59e0b", // amber
+        "#dc2626"  // red
+      ]
+    }
+  ]
+};
+
+const barChartData = {
+  labels: dailyEntries.map(d => d.date),
+  datasets: [
+    {
+      label: "Entries",
+      data: dailyEntries.map(d => d.count),
+      backgroundColor: "#3b82f6",
+      borderRadius: 6
+    }
+  ]
+};
+
+
 
   return (
     <div className="space-y-6">
@@ -224,25 +294,34 @@ const ReportsPage = () => {
       </div>
 
       {/* ================= CHARTS GRID ================= */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Line Chart */}
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold mb-2">Daily Entry Trend</h3>
-          <Line data={lineChartData} />
-        </div>
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+  
+  {/* Line Chart */}
+  <div className="bg-white p-4 rounded shadow h-[260px]">
+    <h3 className="text-sm font-semibold mb-2 text-gray-700">
+      Daily Entry Trend
+    </h3>
+    <Line data={lineChartData} options={lineOptions} />
+  </div>
 
-        {/* Pie Chart */}
-        <div className="bg-white p-4 rounded shadow">
-          <h3 className="font-semibold mb-2">Role Distribution</h3>
-          <Pie data={pieChartData} />
-        </div>
+  {/* Pie Chart */}
+  <div className="bg-white p-4 rounded shadow h-[260px]">
+    <h3 className="text-sm font-semibold mb-2 text-gray-700">
+      Role Distribution
+    </h3>
+    <Pie data={pieChartData} options={pieOptions} />
+  </div>
 
-        {/* Bar Chart (full width on large) */}
-        <div className="bg-white p-4 rounded shadow lg:col-span-2">
-          <h3 className="font-semibold mb-2">Entries Bar Chart</h3>
-          <Bar data={barChartData} />
-        </div>
-      </div>
+  {/* Bar Chart */}
+  <div className="bg-white p-4 rounded shadow h-[280px] lg:col-span-2">
+    <h3 className="text-sm font-semibold mb-2 text-gray-700">
+      Entries Bar Chart
+    </h3>
+    <Bar data={barChartData} options={barOptions} />
+  </div>
+
+</div>
+
     </div>
   );
 };
