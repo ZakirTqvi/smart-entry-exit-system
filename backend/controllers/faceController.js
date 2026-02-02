@@ -7,37 +7,36 @@ import FaceEncoding from '../models/FaceEncoding.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Controller to register face encoding
+// Controller to register face encoding (SAFE VERSION)
 export const registerFaceEncoding = async (req, res) => {
   try {
     const { userId, role } = req.body;
 
-    // 🔥 ABSOLUTE PATH to python file
     const pythonScriptPath = path.join(
       __dirname,
-      '..', '..',           // controllers -> backend -> root
-      'ai_services',
-      'register_face.py'
+      "..", "..",
+      "ai_services",
+      "register_face.py"
     );
 
-    const python = spawn('python', [pythonScriptPath, userId]);
+    const python = spawn("python", [pythonScriptPath, userId]);
 
-    let output = '';
-    let errorOutput = '';
+    let output = "";
+    let errorOutput = "";
 
-    python.stdout.on('data', (data) => {
+    python.stdout.on("data", data => {
       output += data.toString();
     });
 
-    python.stderr.on('data', (data) => {
+    python.stderr.on("data", data => {
       errorOutput += data.toString();
-      console.error('Python error:', data.toString());
+      console.error("Python:", data.toString());
     });
 
-    python.on('close', async (code) => {
+    python.on("close", async (code) => {
       if (code !== 0) {
         return res.status(500).json({
-          message: 'Face capture failed',
+          message: "Face capture failed",
           error: errorOutput
         });
       }
@@ -45,23 +44,35 @@ export const registerFaceEncoding = async (req, res) => {
       let parsed;
       try {
         parsed = JSON.parse(output);
-      } catch (err) {
+      } catch {
         return res.status(500).json({
-          message: 'Invalid data from face service',
-          rawOutput: output
+          message: "Invalid face data received"
         });
       }
 
-      const face = new FaceEncoding({
+      // 🔥 IMPORTANT FIX: UPSERT LOGIC
+      const existingFace = await FaceEncoding.findOne({ userId });
+
+      if (existingFace) {
+        // UPDATE existing encoding
+        existingFace.encoding = parsed.encoding;
+        existingFace.role = role;
+        await existingFace.save();
+
+        return res.json({
+          message: "Face re-registered successfully (updated)"
+        });
+      }
+
+      // CREATE new encoding (first time)
+      await FaceEncoding.create({
         userId,
         role,
         encoding: parsed.encoding
       });
 
-      await face.save();
-
       res.json({
-        message: 'Face encoding stored successfully'
+        message: "Face registered successfully"
       });
     });
 
@@ -69,6 +80,7 @@ export const registerFaceEncoding = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
 
 // Controller to recognize face
 export const recognizeFace = async (req, res) => {
