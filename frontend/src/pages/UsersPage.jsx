@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import UserTable from "../components/UserTable";
 import { BASE_URL } from "../utils/api";
+import { toast } from "react-hot-toast";
 
 const UsersPage = () => {
   const [users, setUsers] = useState([]);
@@ -109,12 +110,11 @@ const UsersPage = () => {
       const data = await res.json();
 
       if (!res.ok) {
-        alert(data.message || "Failed to add user");
+        toast.error(data.message || "Failed to add user");
         return;
       }
 
-      alert("User added successfully ✅");
-
+      toast.success("User added successfully ✅");
       setShowModal(false);
       setFormData({
         name: "",
