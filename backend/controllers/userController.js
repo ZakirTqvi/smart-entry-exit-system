@@ -1,5 +1,6 @@
 // backend/controllers/userController.js
 import User from "../models/User.js";
+import FaceEncoding from "../models/FaceEncoding.js";
 
 /**
  * @desc    Create student / teaching / non-teaching user
@@ -115,11 +116,24 @@ export const getAllUsers = async (req, res) => {
       .limit(Number(limit))
       .sort({ createdAt: -1 });
 
+     // Load all face encodings to check which users have registered faces 
+    const faceEncodings = await FaceEncoding.find().select('userId');
+   
+    const faceMap = new Set(
+      faceEncodings.map(fe => fe.userId.toString()) 
+    );
+
+    const usersWithFaceStatus = users.map(user => ({
+      ...user.toObject(),
+      hasFaceRegistered: faceMap.has(user._id.toString())
+    }));
+    
+
     res.json({
+      users: usersWithFaceStatus,
       totalUsers,
       totalPages: Math.ceil(totalUsers / limit),
-      currentPage: Number(page),
-      users
+      currentPage: Number(page)
     });
 
   } catch (error) {
